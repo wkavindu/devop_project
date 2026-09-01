@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero"><div><p class="eyebrow">OPERATIONS DASHBOARD</p><h1>Stay ahead of every incident.</h1><p>Track service disruptions from first alert to final resolution.</p></div><a class="button" href="{{ url_for('main.create_incident') }}">Report an incident</a></section>
+<section class="stats"><article><strong>{{ incidents|length }}</strong><span>Total incidents</span></article><article><strong>{{ counts.Open }}</strong><span>Open</span></article><article><strong>{{ counts.Investigating }}</strong><span>Investigating</span></article><article><strong>{{ counts.Resolved }}</strong><span>Resolved</span></article></section>
+<div class="section-title"><div><p class="eyebrow">INCIDENT LOG</p><h2>Recent incidents</h2></div></div>
+{% if incidents %}<div class="table-wrap"><table><thead><tr><th>Incident</th><th>Service</th><th>Severity</th><th>Status</th><th>Created</th></tr></thead><tbody>
+{% for incident in incidents %}<tr><td><a class="incident-link" href="{{ url_for('main.incident_detail', incident_id=incident._id) }}">{{ incident.title }}</a></td><td>{{ incident.service }}</td><td><span class="badge severity-{{ incident.severity|lower }}">{{ incident.severity }}</span></td><td><span class="badge status-{{ incident.status|lower }}">{{ incident.status }}</span></td><td>{{ incident.created_at.strftime('%d %b %Y, %H:%M') if incident.created_at else '—' }}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty"><div class="empty-icon">✓</div><h3>No incidents reported</h3><p>Your systems are quiet. New incidents will appear here.</p><a class="button" href="{{ url_for('main.create_incident') }}">Create first incident</a></div>{% endif %}
+{% endblock %}
