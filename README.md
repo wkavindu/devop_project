@@ -64,3 +64,13 @@ This application is intentionally structured for subsequent stages: Linux and sy
 - [ ] Deploy to AWS
 - [ ] Implement Jenkins and Ansible
 - [ ] Complete continuous deployment and monitoring
+
+## Docker
+
+OpsTrack is packaged as a multi-stage Docker image and runs as a
+non-root user with an application health check.
+
+### Build the image
+
+```bash
+docker build --tag opstrack:v1 .
