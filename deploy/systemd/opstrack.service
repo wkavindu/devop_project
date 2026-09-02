@@ -1,0 +1,34 @@
+[Unit]
+Description=OpsTrack Incident Management Application
+Documentation=https://github.com/wkavindu/devop_project
+Wants=network-online.target
+After=network-online.target mongod.service
+Requires=mongod.service
+
+[Service]
+Type=simple
+User=opstrack
+Group=opstrack
+WorkingDirectory=/opt/opstrack
+EnvironmentFile=/etc/opstrack.env
+
+ExecStart=/opt/opstrack/venv/bin/gunicorn \
+    --workers 2 \
+    --bind 127.0.0.1:5000 \
+    --access-logfile - \
+    --error-logfile - \
+    run:app
+
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+UMask=027
+
+[Install]
+WantedBy=multi-user.target
