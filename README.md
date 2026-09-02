@@ -48,3 +48,19 @@ gunicorn --bind 0.0.0.0:5000 run:app
 ## DevOps roadmap
 
 This application is intentionally structured for subsequent stages: Linux and systemd, Nginx, Docker and Compose, GitHub Actions, Kubernetes, AWS, Jenkins, Ansible, monitoring, and security hardening.
+
+## DevOps implementation progress
+
+- [x] Build and test the local Flask and MongoDB application
+- [x] Deploy the application as a hardened systemd service
+- [x] Configure automatic startup and failure recovery
+- [x] Configure Nginx as a reverse proxy
+- [x] Restrict Gunicorn to the loopback interface
+- [x] Reproduce and diagnose a 502 Bad Gateway
+- [ ] Containerize the application with Docker
+- [ ] Orchestrate the stack with Docker Compose
+- [ ] Implement CI with GitHub Actions
+- [ ] Deploy to Kubernetes
+- [ ] Deploy to AWS
+- [ ] Implement Jenkins and Ansible
+- [ ] Complete continuous deployment and monitoring
