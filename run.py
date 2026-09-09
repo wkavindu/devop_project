@@ -1,3 +1,5 @@
+# Entry point for the OpsTrack application.
+
 import os
 
 from app import create_app
