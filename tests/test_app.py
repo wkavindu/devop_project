@@ -28,8 +28,3 @@ def test_rejects_invalid_incident(client):
     })
     assert response.status_code == 200
     assert b"required" in response.data
-
-
-def test_ci_detects_failure():
-    """Intentional temporary failure to demonstrate CI protection."""
-    assert False, "Intentional CI failure demonstration"
