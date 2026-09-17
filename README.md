@@ -74,3 +74,19 @@ non-root user with an application health check.
 
 ```bash
 docker build --tag opstrack:v1 .
+
+## Jenkins CI/CD
+
+OpsTrack includes a self-hosted Jenkins declarative pipeline that:
+
+- Checks out source code from GitHub
+- Runs automated tests in an isolated Python container
+- Validates the Docker Compose configuration
+- Builds versioned Docker images
+- Uses Jenkins Credentials for Docker Hub authentication
+- Publishes successful `main` builds to Docker Hub
+- Reports failures and prevents later stages from running
+
+The Jenkins controller runs with an isolated Docker-in-Docker build engine using TLS and persistent volumes.
+
+See [`deploy/jenkins/README.md`](deploy/jenkins/README.md) for setup instructions.
