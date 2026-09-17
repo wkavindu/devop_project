@@ -9,3 +9,7 @@ htmlcov/
 .DS_Store
 .idea/
 .vscode/
+# Local Ansible inventory
+deploy/ansible/inventory.ini
+# Locally generated Ansible secret
+deploy/ansible/.opstrack_secret

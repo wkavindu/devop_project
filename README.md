@@ -90,3 +90,18 @@ OpsTrack includes a self-hosted Jenkins declarative pipeline that:
 The Jenkins controller runs with an isolated Docker-in-Docker build engine using TLS and persistent volumes.
 
 See [`deploy/jenkins/README.md`](deploy/jenkins/README.md) for setup instructions.
+
+## Ansible Infrastructure Automation
+
+OpsTrack includes an idempotent Ansible deployment that converts a clean Ubuntu server into a working application server with one command.
+
+The playbook:
+
+- Installs and enables Docker
+- Deploys Nginx, OpsTrack and MongoDB with Docker Compose
+- Generates and protects the application secret
+- Configures persistent MongoDB storage
+- Verifies health and database readiness
+- Produces `changed=0` when run again against an already configured server
+
+See [`deploy/ansible/README.md`](deploy/ansible/README.md) for deployment instructions.

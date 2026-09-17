@@ -1,0 +1,121 @@
+---
+- name: Configure and deploy the OpsTrack application server
+  hosts: webservers
+  become: true
+
+  vars:
+    opstrack_directory: /opt/opstrack
+    opstrack_image: wkavindu/opstrack:latest
+    opstrack_secret: >-
+      {{
+        lookup(
+          'ansible.builtin.password',
+          playbook_dir + '/.opstrack_secret',
+          length=64,
+          chars=['hexdigits']
+        )
+      }}
+
+  tasks:
+    - name: Update the APT package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Docker and required packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - docker.io
+          - docker-compose-v2
+        state: present
+
+    - name: Ensure Docker is enabled and running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Create the OpsTrack deployment directory
+      ansible.builtin.file:
+        path: "{{ opstrack_directory }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Install the Nginx reverse-proxy configuration
+      ansible.builtin.template:
+        src: nginx.conf.j2
+        dest: "{{ opstrack_directory }}/nginx.conf"
+        owner: root
+        group: root
+        mode: "0644"
+      register: nginx_configuration
+
+    - name: Install the protected OpsTrack environment file
+      ansible.builtin.template:
+        src: opstrack.env.j2
+        dest: /etc/opstrack.env
+        owner: root
+        group: root
+        mode: "0600"
+      register: opstrack_environment
+      no_log: true
+
+    - name: Install the Docker Compose definition
+      ansible.builtin.template:
+        src: compose.yaml.j2
+        dest: "{{ opstrack_directory }}/compose.yaml"
+        owner: root
+        group: root
+        mode: "0644"
+      register: compose_configuration
+
+    - name: Deploy the OpsTrack Docker Compose stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ opstrack_directory }}"
+        files:
+          - compose.yaml
+        state: present
+        pull: missing
+        recreate: >-
+          {{
+            'always'
+            if (
+              nginx_configuration.changed
+              or opstrack_environment.changed
+              or compose_configuration.changed
+            )
+            else 'auto'
+          }}
+        wait: true
+        wait_timeout: 180
+
+    - name: Verify the OpsTrack health endpoint
+      ansible.builtin.uri:
+        url: http://127.0.0.1/health
+        method: GET
+        status_code: 200
+        return_content: true
+      register: opstrack_health
+      retries: 12
+      delay: 5
+      until:
+        - opstrack_health.status == 200
+        - opstrack_health.json.status == "healthy"
+
+    - name: Verify the OpsTrack readiness endpoint
+      ansible.builtin.uri:
+        url: http://127.0.0.1/ready
+        method: GET
+        status_code: 200
+        return_content: true
+      register: opstrack_readiness
+      retries: 12
+      delay: 5
+      until:
+        - opstrack_readiness.status == 200
+        - opstrack_readiness.json.status == "ready"
+        
