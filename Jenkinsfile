@@ -6,6 +6,10 @@ pipeline {
         disableConcurrentBuilds()
     }
 
+    environment {
+        DOCKERHUB_IMAGE = 'wkavindu/opstrack'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -47,9 +51,48 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                      --tag "opstrack:jenkins-${BUILD_NUMBER}" \
+                      --tag "${DOCKERHUB_IMAGE}:jenkins-${BUILD_NUMBER}" \
                       .
                 '''
+            }
+        }
+
+        stage('Push Image') {
+            when {
+                expression {
+                    env.GIT_BRANCH == 'origin/main'
+                }
+            }
+
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKERHUB_USERNAME',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+
+                        echo "$DOCKERHUB_TOKEN" |
+                          docker login \
+                            --username "$DOCKERHUB_USERNAME" \
+                            --password-stdin
+
+                        docker push \
+                          "${DOCKERHUB_IMAGE}:jenkins-${BUILD_NUMBER}"
+
+                        docker tag \
+                          "${DOCKERHUB_IMAGE}:jenkins-${BUILD_NUMBER}" \
+                          "${DOCKERHUB_IMAGE}:jenkins-latest"
+
+                        docker push \
+                          "${DOCKERHUB_IMAGE}:jenkins-latest"
+
+                        docker logout
+                    '''
+                }
             }
         }
     }
@@ -66,7 +109,8 @@ pipeline {
         always {
             sh '''
                 docker image rm \
-                  "opstrack:jenkins-${BUILD_NUMBER}" \
+                  "${DOCKERHUB_IMAGE}:jenkins-${BUILD_NUMBER}" \
+                  "${DOCKERHUB_IMAGE}:jenkins-latest" \
                   2>/dev/null || true
             '''
         }
